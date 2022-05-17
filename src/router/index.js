@@ -1,157 +1,148 @@
-import Settings from "../settings.json";
-import MobliePhone from "../views/Mindex.vue";
-import PersonalComputer from "../views/Pindex.vue";
+import store from '../store/index';
+import { createRouter, createWebHashHistory } from 'vue-router';
 
-import MobliePhone_Home from "../component/Moblie/Home.vue";
-import MobliePhone_Info from "../component/Moblie/Info.vue";
-import MobliePhone_Create from "../component/Moblie/Create.vue";
+import Settings from '../settings.json';
 
-import PersonalComputer_Home from "../component/Computer/Home.vue";
-import PersonalComputer_Info from "../component/Computer/Info.vue";
-import PersonalComputer_Create from "../component/Computer/Create.vue";
-import PersonalComputer_Browse from "../component/Computer/Browse.vue";
+import EggView from '@/views/EggView';
+import MobilePhone from '../views/MindexView.vue';
+import PersonalComputer from '../views/PindexView.vue';
 
-import store from "../store/index";
-import { createRouter, createWebHashHistory } from "vue-router";
+import MobilePhone_Home from '../component/Mobile/HomePage.vue';
+import MobilePhone_Info from '../component/Mobile/InfoPage.vue';
+import MobilePhone_Create from '../component/Mobile/CreatePage.vue';
+
+import PersonalComputer_Home from '../component/Computer/HomePage.vue';
+import PersonalComputer_Info from '../component/Computer/InfoPage.vue';
+import PersonalComputer_Create from '../component/Computer/CreatePage.vue';
+import PersonalComputer_Browse from '../component/Computer/BrowsePage.vue';
 
 const routes = [
-    {
-        path: "/m",
-        component: MobliePhone,
-        meta: {
-            title: "头像制作",
-            requiresAuth: false,
-        },
-        children: [
-            {
-                path: "home",
-                component: MobliePhone_Home,
-                meta: {
-                    title: "首页",
-                    requiresAuth: false,
-                },
-            },
-            {
-                path: "create",
-                component: MobliePhone_Create,
-                meta: {
-                    title: "制作头像",
-                    requiresAuth: false,
-                },
-            },
-            {
-                path: "info",
-                component: MobliePhone_Info,
-                meta: {
-                    title: "关于",
-                    requiresAuth: false,
-                },
-            },
-            {
-                path: ":match(.*)",
-                redirect: "/m/home",
-            },
-        ],
+  {
+    path: '/m',
+    component: MobilePhone,
+    meta: {
+      title: '头像制作'
     },
-    {
-        path: "/p",
-        component: PersonalComputer,
+    children: [
+      {
+        path: 'home',
+        component: MobilePhone_Home,
         meta: {
-            title: "头像制作",
-            requiresAuth: false,
-        },
-        children: [
-            {
-                path: "home",
-                component: PersonalComputer_Home,
-                meta: {
-                    title: "首页",
-                    requiresAuth: false,
-                },
-            },
-            {
-                path: "browse",
-                component: PersonalComputer_Browse,
-                meta: {
-                    title: "浏览头像",
-                    requiresAuth: false,
-                },
-            },
-            {
-                path: "create",
-                component: PersonalComputer_Create,
-                meta: {
-                    title: "制作头像",
-                    requiresAuth: false,
-                },
-            },
-            {
-                path: "info",
-                component: PersonalComputer_Info,
-                meta: {
-                    title: "关于",
-                    requiresAuth: false,
-                },
-            },
-            {
-                path: ":match(.*)",
-                redirect: "/p/home",
-            },
-        ],
+          title: '首页'
+        }
+      },
+      {
+        path: 'create',
+        component: MobilePhone_Create,
+        meta: {
+          title: '制作头像'
+        }
+      },
+      {
+        path: 'info',
+        component: MobilePhone_Info,
+        meta: {
+          title: '关于'
+        }
+      },
+      {
+        path: ':match(.*)',
+        redirect: '/m/home'
+      }
+    ]
+  },
+  {
+    path: '/p',
+    component: PersonalComputer,
+    meta: {
+      title: '头像制作'
     },
+    children: [
+      {
+        path: 'egg',
+        component: EggView,
+        meta: {
+          title: '加入我们'
+        }
+      },
+      {
+        path: 'home',
+        component: PersonalComputer_Home,
+        meta: {
+          title: '首页'
+        }
+      },
+      {
+        path: 'browse',
+        component: PersonalComputer_Browse,
+        meta: {
+          title: '浏览头像'
+        }
+      },
+      {
+        path: 'create',
+        component: PersonalComputer_Create,
+        meta: {
+          title: '制作头像'
+        }
+      },
+      {
+        path: 'info',
+        component: PersonalComputer_Info,
+        meta: {
+          title: '关于'
+        }
+      },
+      {
+        path: ':match(.*)',
+        redirect: '/p/home'
+      }
+    ]
+  }
 ];
 
 const router = createRouter({
-    history: createWebHashHistory(),
-    routes,
+  history: createWebHashHistory(process.env.BASE_URL),
+  routes
+});
+
+router.beforeEach((to, from, next) => {
+  store.commit('setUserAgent', navigator.userAgent);
+  const alpha = /(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile)/i;
+  const beta = /(MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i;
+  if (navigator.userAgent.match(alpha) || navigator.userAgent.match(beta) || document.body.clientWidth < 1024) {
+    let dest = to.path;
+    if (dest.indexOf('/p') === 0) {
+      router.push('/m' + dest.substring(2)).then();
+    } else if (dest.indexOf('/m') !== 0) {
+      router.push('/m' + dest).then();
+    } else {
+      next();
+    }
+  } else {
+    let dest = to.path;
+    if (dest.indexOf('/m') === 0) {
+      router.push('/p' + dest.substring(2)).then();
+    } else if (dest.indexOf('/p') !== 0) {
+      router.push('/p' + dest).then();
+    } else {
+      next();
+    }
+  }
+});
+
+router.afterEach((to) => {
+  if (
+    to.matched.filter(function (i) {
+      return i.meta['title'];
+    }).length > 0
+  ) {
+    let title = '';
+    to.matched.forEach(function (i) {
+      title += ' - ' + i.meta['title'];
+    });
+    document.title = Settings['titlePrefix'] + title.substring(3).trim();
+  }
 });
 
 export default router;
-
-router.beforeEach((to, from, next) => {
-    let flag =
-        navigator.userAgent.match(
-            /(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC)/i
-        ) ||
-        navigator.userAgent.match(
-            /(Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone|MicroMessenger)/i
-        );
-    store.commit("setUserAgent", navigator.userAgent);
-    if (flag) {
-        let dest = to.path;
-        if (dest.indexOf("/p") === 0) {
-            dest = "/m" + dest.substring(2);
-            router.push(dest);
-        } else if (dest.indexOf("/m") !== 0) {
-            dest = "/m" + dest;
-            router.push(dest);
-        } else {
-            next();
-        }
-    } else {
-        let dest = to.path;
-        if (dest.indexOf("/m") === 0) {
-            dest = "/p" + dest.substring(2);
-            router.push(dest);
-        } else if (dest.indexOf("/p") !== 0) {
-            dest = "/p" + dest;
-            router.push(dest);
-        } else {
-            next();
-        }
-    }
-});
-
-router.afterEach((to, from, next) => {
-    if (
-        to.matched.filter(function (i) {
-            return i.meta.title;
-        }).length > 0
-    ) {
-        let title = "";
-        to.matched.forEach(function (i) {
-            title += " - " + i.meta.title;
-        });
-        document.title = Settings["titlePrefix"] + title.substring(3).trim();
-    }
-});
